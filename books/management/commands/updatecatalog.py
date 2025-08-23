@@ -301,18 +301,39 @@ class Command(BaseCommand):
             else:
                 os.makedirs(TEMP_PATH)
 
-            log('  Downloading compressed catalog...')
-            urllib.request.urlretrieve(URL, DOWNLOAD_PATH)
+            # Check for local catalog file
+            LOCAL_CATALOG_PATH = '/app/rdf-files.tar.bz2'
+            if os.path.exists(LOCAL_CATALOG_PATH):
+                log('  Found local catalog file, using:', LOCAL_CATALOG_PATH)
+                shutil.copy(LOCAL_CATALOG_PATH, DOWNLOAD_PATH)
+            else:
+                log('  Downloading compressed catalog...')
+                log(URL)
+                log(DOWNLOAD_PATH)
+                urllib.request.urlretrieve(URL, DOWNLOAD_PATH)
 
             log('  Decompressing catalog...')
             if not os.path.exists(DOWNLOAD_PATH):
+                log('  DOWNLOAD_PATH not exists')
                 os.makedirs(DOWNLOAD_PATH)
             with open(os.devnull, 'w') as null:
+                log('  DOWNLOAD_PATH exists, start tar Decompressing, ' + TEMP_PATH)
                 call(
                     ['tar', 'fjvx', DOWNLOAD_PATH, '-C', TEMP_PATH],
                     stdout=null,
                     stderr=null
                 )
+
+            log('  Files under TEMP_PATH:')
+            for root, dirs, files in os.walk(TEMP_PATH):
+                level = root.replace(TEMP_PATH, '').count(os.sep)
+                indent = ' ' * 2 * level
+                log(f'{indent}{os.path.basename(root)}/')
+                subindent = ' ' * 2 * (level + 1)
+                for file in files[:10]:  # Limit to first 10 files to avoid spam
+                    log(f'{subindent}{file}')
+                if len(files) > 10:
+                    log(f'{subindent}... and {len(files) - 10} more files')
 
             log('  Detecting stale directories...')
             if not os.path.exists(MOVE_TARGET_PATH):

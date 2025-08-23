@@ -1,3 +1,17 @@
+############################
+# OS X
+############################
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+.Spotlight-V100
+.Trashes
+._*
+.history
+
+
 *.pyc
 catalog_files
 gutendex/.env

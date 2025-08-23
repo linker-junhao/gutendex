@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  gutendexdb:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: gutendex
+      POSTGRES_USER: gutendex
+      POSTGRES_PASSWORD: gutendex123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - gutendex-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gutendex -d gutendex"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gutendexweb:
+    build: .
+    environment:
+      - DJANGO_SETTINGS_MODULE=gutendex.settings
+      # Database Configuration
+      - DATABASE_NAME=gutendex
+      - DATABASE_USER=gutendex
+      - DATABASE_PASSWORD=gutendex123
+      - DATABASE_HOST=gutendexdb
+      - DATABASE_PORT=5432
+      # Django Settings
+      - SECRET_KEY=yoursecretkeyhere
+      - DEBUG=false
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - ADMIN_NAMES=You
+      - EMAIL_HOST=your.smtp.host.here
+      - EMAIL_HOST_ADDRESS=gutendex@your.domain.here
+      - EMAIL_HOST_PASSWORD=your-smtp-host-password
+      - EMAIL_HOST_USER=your-smtp-host-user-name
+      - MANAGER_EMAILS=someone@their.domain.here
+      - MANAGER_NAMES=Someone
+      - MEDIA_ROOT=/app/media/
+      - STATIC_ROOT=/app/staticfiles/
+    depends_on:
+      gutendexdb:
+        condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    networks:
+      - gutendex-network
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 gutendex.wsgi:application"
+
+  gutendexnginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    depends_on:
+      - gutendexweb
+    networks:
+      - gutendex-network
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:
+
+networks:
+  gutendex-network:
+    driver: bridge
