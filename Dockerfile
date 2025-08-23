@@ -5,6 +5,10 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=gutendex.settings
 
+# Configure Debian mirror for Tencent
+RUN sed -i 's|deb.debian.org/debian|mirrors.cloud.tencent.com/debian|g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's|security.debian.org/debian-security|mirrors.cloud.tencent.com/debian-security|g' /etc/apt/sources.list.d/debian.sources
+
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
