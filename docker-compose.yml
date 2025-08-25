@@ -30,7 +30,7 @@ services:
       # Django Settings
       - SECRET_KEY=yoursecretkeyhere
       - DEBUG=false
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - ALLOWED_HOSTS=localhost,127.0.0.1,host.docker.internal
       - ADMIN_NAMES=You
       - EMAIL_HOST=your.smtp.host.here
       - EMAIL_HOST_ADDRESS=gutendex@your.domain.here
