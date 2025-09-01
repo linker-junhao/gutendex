@@ -7,6 +7,7 @@ services:
       POSTGRES_DB: gutendex
       POSTGRES_USER: gutendex
       POSTGRES_PASSWORD: gutendex123
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -40,6 +41,7 @@ services:
       - MANAGER_NAMES=Someone
       - MEDIA_ROOT=/app/media/
       - STATIC_ROOT=/app/staticfiles/
+    restart: unless-stopped
     depends_on:
       gutendexdb:
         condition: service_healthy
@@ -55,6 +57,7 @@ services:
 
   gutendexnginx:
     image: nginx:alpine
+    restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
